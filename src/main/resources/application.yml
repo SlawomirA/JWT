@@ -12,7 +12,22 @@ spring:
         hibernate:
             ddl-auto: update
         properties:
-            hibernate.dialect: org.hibernate.dialect.MySQLDialect
+            hibernate:
+                dialect: org.hibernate.dialect.MySQLDialect
+                envers:     # Nazwa tabel dla logowanie przez Envers
+                    audit_table_prefix: AUDIT_
+                    audit_table_suffix: _HISTORY
+                    revision_field_name: rev
+                    revision_type_field_name: revtype
+                    store_data_at_delete: true
+                    default_schema: defaultdb
+                    default_catalog: defaultdb
+
+logging:
+    level:
+        org:
+            hibernate:
+                envers: DEBUG  # Poziom logowania dla Envers, opcjonalne
 
 security:
     jwt:

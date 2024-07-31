@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -29,6 +30,7 @@ import java.util.List;
 @Entity
 @Table(name = "user")
 @EntityListeners(AuditingEntityListener.class)
+@Audited
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,21 +45,6 @@ public class User implements UserDetails {
     @Column(name = "password")
     private String password;
 
-
-    @CreationTimestamp
-    @Column(updatable = false, name = "created_at")
-    private Date createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Date updatedAt;
-
-    @CreatedBy
-    @Column(updatable = false)
-    private Integer createdBy;
-
-    @LastModifiedBy
-    private Integer lastModifiedBy;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -91,4 +78,20 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    //AUDITING
+    @CreationTimestamp
+    @Column(updatable = false, name = "created_at")
+    private Date createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Date updatedAt;
+
+    @CreatedBy
+    @Column(updatable = false)
+    private Integer createdBy;
+
+    @LastModifiedBy
+    private Integer lastModifiedBy;
 }
