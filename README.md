@@ -25,3 +25,8 @@ Logowane są następujące dane:
 
 ## Generowanie klucza do application.yml
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+
+## Budowanie aplikacji
+pip install pyyaml
+./buildDocker.sh
