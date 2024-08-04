@@ -6,30 +6,27 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_push:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Check out the repo
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
+          distribution: 'zulu'
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build Docker image
+      - name: Install Python and PyYAML
         run: |
-          # Get project name from application.yml
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          pip3 install pyyaml
+
+      - name: Extract project name from application.yml
+        id: extract_name
+        run: |
           PROJECT_NAME=$(python3 -c "
           import yaml
           with open('src/main/resources/application.yml', 'r') as stream:
@@ -39,26 +36,26 @@ jobs:
               except yaml.YAMLError as exc:
                   print(exc)
           ")
-          
-          # Default to "default-name" if PROJECT_NAME is empty
-          PROJECT_NAME=${PROJECT_NAME:-default-name}
+          echo "PROJECT_NAME=${PROJECT_NAME}" >> $GITHUB_ENV
 
-          # Get the current date
-          DATE=$(date +"%d-%m-%Y-%H-%M-%S")
-
-          # Generate image tag
-          IMAGE_TAG="${PROJECT_NAME}-test:${DATE}"
-
-          # Build Docker image
-          docker build --build-arg PROJECT_NAME=${PROJECT_NAME} -t "${IMAGE_TAG}" .
-
-          # Tag and push the image
-          FINAL_TAG="sandrzejczak/${PROJECT_NAME}:${DATE}-test"
-          docker tag "${IMAGE_TAG}" "${FINAL_TAG}"
-          docker push "${FINAL_TAG}"
-
-      - name: Post image build information
+      - name: Generate timestamp
+        id: generate_timestamp
         run: |
-          echo "PROJECT_NAME: $PROJECT_NAME"
-          echo "IMAGE_TAG: $IMAGE_TAG"
-          echo "FINAL_TAG: $FINAL_TAG"
+          TIMESTAMP=$(date +"%d-%m-%Y-%H-%M-%S")
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            myregistry.com/${{ env.PROJECT_NAME }}:${{ env.TIMESTAMP }}
+            myregistry.com/${{ env.PROJECT_NAME }}:latest
