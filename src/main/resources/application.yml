@@ -1,4 +1,7 @@
+
 spring:
+    application:
+        name: jwt-service
     datasource:
         url: jdbc:mysql://thesis-thesis.l.aivencloud.com:10454/defaultdb
         username: avnadmin

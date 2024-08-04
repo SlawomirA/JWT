@@ -1,15 +1,16 @@
 package thesis.backend.jwt;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.boot.test.context.SpringBootTest;
 import thesis.backend.jwt.controller.AuthenticationController;
@@ -19,6 +20,9 @@ import thesis.backend.jwt.model.Response.AuthenticationResponse;
 import thesis.backend.jwt.model.Response.Response;
 import thesis.backend.jwt.service.AuthenticationService;
 import thesis.backend.jwt.utils.Consts;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @SpringBootTest
 public class AuthenticationControllerTests {
@@ -73,4 +77,31 @@ public class AuthenticationControllerTests {
         assertEquals("John", responseEntity.getBody().getContainedObject().getUser().getFirstname());
         assertEquals("Doe", responseEntity.getBody().getContainedObject().getUser().getLastname());
     }
+
+
+
+    @DisplayName("Confirm that the status code 200 is correctly documented in the @ApiResponse annotation")
+    @Test
+    public void test_status_code_documentation() throws NoSuchMethodException {
+        // Given
+        AuthenticationController authenticationController = new AuthenticationController();
+
+        // Retrieve the method
+        Method method = AuthenticationController.class.getDeclaredMethod("authenticateUser", AuthenticateRequest.class);
+
+        // Retrieve @ApiResponses annotation from the method
+        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
+
+        // Check if @ApiResponses is present
+        if (apiResponses != null) {
+            boolean isStatusCode200Documented = Arrays.stream(apiResponses.value())
+                    .anyMatch(apiResponse -> apiResponse.responseCode().equals("200"));
+
+            assertTrue(isStatusCode200Documented, "Status code 200 is not documented in the @ApiResponse annotation");
+        } else {
+            // Fail the test if @ApiResponses is not present
+            assertTrue(false, "@ApiResponses annotation is not present on the method");
+        }
+    }
+
 }
