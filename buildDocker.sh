@@ -1,23 +1,5 @@
 #!/bin/bash
 
-# Sprawdź, czy Python jest zainstalowany
-if ! command -v python &> /dev/null
-then
-    echo "Python could not be found. Please install Python to proceed."
-    exit
-fi
-
-# Sprawdź, czy PyYAML jest zainstalowany
-python -c "import yaml" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo "PyYAML is not installed. Installing now..."
-    pip install pyyaml
-    if [ $? -ne 0 ]; then
-        echo "Failed to install PyYAML. Please install it manually with 'pip install pyyaml'."
-        exit 1
-    fi
-fi
-
 # Ustaw domyślną wartość dla DEPLOY_ENV
 DEPLOY_ENV="test"
 PUSH_IMAGE=false
@@ -42,16 +24,8 @@ do
     esac
 done
 
-# Wczytaj nazwę projektu z application.yml za pomocą Python
-PROJECT_NAME=$(python -c "
-import yaml
-with open('src/main/resources/application.yml', 'r') as stream:
-    try:
-        config = yaml.safe_load(stream)
-        print(config['spring']['application']['name'])
-    except yaml.YAMLError as exc:
-        print(exc)
-")
+# Wczytaj nazwę projektu z application.properties za pomocą grep i cut
+PROJECT_NAME=$(grep -E '^spring\.application\.name=' src/main/resources/application.properties | cut -d '=' -f 2)
 
 # Usuń ewentualne białe znaki
 PROJECT_NAME=$(echo "$PROJECT_NAME" | xargs)
@@ -74,11 +48,10 @@ IMAGE_TAG="${PROJECT_NAME}-${DEPLOY_ENV}:${DATE}"
 echo "IMAGE_TAG: $IMAGE_TAG"
 
 # Zbuduj obraz Dockerowy z użyciem wygenerowanego tagu
-docker build --build-arg PROJECT_NAME=${PROJECT_NAME} -t "${IMAGE_TAG}" .
+docker build --build-arg PROJECT_NAME=${PROJECT_NAME} --build-arg BUILD_DATE=${DATE} -t "${IMAGE_TAG}" .
 
 echo "BUDOWANIE UKOŃCZONE"
-# Wypchnij obraz, jeśli flaga --push jest podana
-if [ "$PUSH_IMAGE" = true ]; then
+if [ "$PUSH_IMAGE" = true ]; then # Wypchnij obraz, jeśli flaga --push jest podana
     echo "PUSHOWANIE OBRAZU:"
     # Tagowanie obrazu dla Docker Hub
     FINAL_TAG="sandrzejczak/${PROJECT_NAME}:${DATE}-${DEPLOY_ENV}"

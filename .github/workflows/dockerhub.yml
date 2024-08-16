@@ -43,5 +43,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            myregistry.com/${{ env.PROJECT_NAME }}:${{ env.TIMESTAMP }}
-            myregistry.com/${{ env.PROJECT_NAME }}:latest
+            sandrzejczak/${{ env.PROJECT_NAME }}:${{ env.TIMESTAMP }}
+            sandrzejczak/${{ env.PROJECT_NAME }}:latest
+          build-args: |
+            PROJECT_NAME=${{ env.PROJECT_NAME }}
+            BUILD_DATE=${{ env.TIMESTAMP }}
