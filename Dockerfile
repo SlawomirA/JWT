@@ -1,5 +1,5 @@
 # Wybierz obraz bazowy z JDK 21
-FROM openjdk:21-jdk-alpine AS build
+FROM openjdk:21-jdk AS build
 
 # Ustaw katalog roboczy
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY src src
 RUN mvn clean package -DskipTests
 
 # Użyj mniejszego obrazu JDK do uruchomienia aplikacji
-FROM openjdk:21-jdk-alpine
+FROM openjdk:21-jdk
 
 # Ustaw katalog roboczy
 WORKDIR /app
