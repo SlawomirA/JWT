@@ -1,40 +1,31 @@
-
-spring:
-    application:
-        name: jwt-service
-    datasource:
-        url: jdbc:mysql://thesis-thesis.l.aivencloud.com:10454/defaultdb
-        username: avnadmin
-        password: AVNS_eLz9N377f8FIlFPl3Db
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        hikari:
-            maximum-pool-size: 5
-
-    jpa:
-        show-sql: true
-        hibernate:
-            ddl-auto: update
-        properties:
-            hibernate:
-                dialect: org.hibernate.dialect.MySQLDialect
-                envers:     # Nazwa tabel dla logowanie przez Envers
-                    audit_table_prefix: AUDIT_
-                    audit_table_suffix: _HISTORY
-                    revision_field_name: rev
-                    revision_type_field_name: revtype
-                    store_data_at_delete: true
-                    default_schema: defaultdb
-                    default_catalog: defaultdb
-
-logging:
-    level:
-        org:
-            hibernate:
-                envers: DEBUG  # Poziom logowania dla Envers, opcjonalne
-
-security:
-    jwt:
-        expiration-time: 3600000
-        refresh-token:
-            expiration: 604800000
-        secret-key: 4582a9ca8fe1c32793c87c970d193aaa3ab64c16c5ecd33dd16e9a209dea52e9
+# Application Name
+spring.application.name=jwt-service
+  
+  # Data Source Configuration
+spring.datasource.url=jdbc:mysql://thesis-thesis.l.aivencloud.com:10454/defaultdb
+spring.datasource.username=avnadmin
+spring.datasource.password=AVNS_eLz9N377f8FIlFPl3Db
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.hikari.maximum-pool-size=5
+  
+  # JPA Configuration
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+  
+  # Hibernate Envers Configuration
+spring.jpa.properties.hibernate.envers.audit_table_prefix=AUDIT_
+spring.jpa.properties.hibernate.envers.audit_table_suffix=_HISTORY
+spring.jpa.properties.hibernate.envers.revision_field_name=rev
+spring.jpa.properties.hibernate.envers.revision_type_field_name=revtype
+spring.jpa.properties.hibernate.envers.store_data_at_delete=true
+spring.jpa.properties.hibernate.envers.default_schema=defaultdb
+spring.jpa.properties.hibernate.envers.default_catalog=defaultdb
+  
+  # Logging Configuration
+logging.level.org.hibernate.envers=DEBUG
+  
+  # Security Configuration
+security.jwt.expiration-time=3600000
+security.jwt.refresh-token.expiration=604800000
+security.jwt.secret-key=4582a9ca8fe1c32793c87c970d193aaa3ab64c16c5ecd33dd16e9a209dea52e9
