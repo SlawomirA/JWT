@@ -32,7 +32,7 @@ EXPOSE 8082
 # Przyjmij nazwę aplikacji i datę jako zmienne środowiskowe
 ARG PROJECT_NAME
 ENV PROJECT_NAME=${PROJECT_NAME}
-ENV BUILD_DATE=$(date +"%d-%m-%Y-%H-%M-%S")
+ENV BUILD_DATE=${BUILD_DATE}
 
 # Ustaw polecenie do uruchomienia aplikacji
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -48,7 +48,7 @@ IMAGE_TAG="${PROJECT_NAME}-${DEPLOY_ENV}:${DATE}"
 echo "IMAGE_TAG: $IMAGE_TAG"
 
 # Zbuduj obraz Dockerowy z użyciem wygenerowanego tagu
-docker build --build-arg PROJECT_NAME=${PROJECT_NAME} -t "${IMAGE_TAG}" .
+docker build --build-arg PROJECT_NAME=${PROJECT_NAME} --build-arg BUILD_DATE=${DATE} -t "${IMAGE_TAG}" .
 
 echo "BUDOWANIE UKOŃCZONE"
 if [ "$PUSH_IMAGE" = true ]; then # Wypchnij obraz, jeśli flaga --push jest podana
