@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.DefaultMessageCodesResolver;
 import thesis.backend.jwt.service.JWTService;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,12 +53,7 @@ public class JWTServiceImpl implements JWTService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts
-                .parserBuilder()
-                .setSigningKey(getSignInKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        return Jwts.parser().verifyWith(getSecretSignInKey()).build().parseSignedClaims(token).getPayload();
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -100,6 +97,9 @@ public class JWTServiceImpl implements JWTService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
+    private SecretKey getSecretSignInKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
+    }
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);

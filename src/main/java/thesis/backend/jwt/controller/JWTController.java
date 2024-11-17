@@ -22,23 +22,12 @@ import java.io.IOException;
 
 @Slf4j
 @RestController
-@RequestMapping("jwtConttroller")
+@RequestMapping("jwtController")
 @Scope("request")
 public class JWTController {
 
     @Autowired
     AuthenticationService authenticationService;
-
-//    @GetMapping(value = "/statisticDisease", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @Operation(summary = "Which disease is most often predicted for people who have not yet contracted the disease.",
-//            description = "Which disease is most often predicted for people who have not yet contracted the disease.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Successfully computed"),
-//    })
-//    public ResponseEntity<Response> getStatisticDisease() {
-//        Object result = this.predictionService.getStatisticDisease();
-//        return ResponseEntity.ok(new Response<>(Consts.C200, 200, "", result));
-//    }
 
 
     @PostMapping(value = "/refresh-token", produces = MediaType.APPLICATION_JSON_VALUE)
