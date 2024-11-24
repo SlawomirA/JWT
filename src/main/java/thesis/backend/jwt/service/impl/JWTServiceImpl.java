@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.DefaultMessageCodesResolver;
+import thesis.backend.jwt.model.Data.CustomUserDetails;
+import thesis.backend.jwt.model.MySQL.User;
 import thesis.backend.jwt.service.JWTService;
 
 import javax.crypto.SecretKey;
@@ -56,12 +58,27 @@ public class JWTServiceImpl implements JWTService {
         return Jwts.parser().verifyWith(getSecretSignInKey()).build().parseSignedClaims(token).getPayload();
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateToken(User user) {
+        return generateToken(new HashMap<>(), user);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, JWT_EXPIRATION_TIME);
+    public String generateToken(Map<String, Object> extraClaims, User user) {
+        return buildToken(extraClaims, mapToCustomUserDetails(user), JWT_EXPIRATION_TIME);
+    }
+
+    public CustomUserDetails mapToCustomUserDetails(User user) {
+        return new CustomUserDetails(
+                user.getUsername(),
+                user.getPassword(),
+                user.getRole().getAuthorities(),
+                true, // accountNonExpired
+                true, // accountNonLocked
+                true, // credentialsNonExpired
+                true, // enabled
+                user.getFirstname(),
+                user.getLastname(),
+                user.getEmail()
+        );
     }
 
     /**
@@ -74,18 +91,29 @@ public class JWTServiceImpl implements JWTService {
      */
     private String buildToken(
             Map<String, Object> extraClaims,
-            UserDetails userDetails,
+            CustomUserDetails userDetails,
             long expiration
     ) {
-        return Jwts
-                .builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+        // Create a claims map and populate it with userDetails data
+        Map<String, Object> claims = new HashMap<>(extraClaims);
+        claims.put("firstname", userDetails.getFirstname());
+        claims.put("lastname", userDetails.getLastname());
+        claims.put("email", userDetails.getEmail());
+        claims.put("authorities", userDetails.getAuthorities());
+        claims.put("accountNonExpired", userDetails.isAccountNonExpired());
+        claims.put("accountNonLocked", userDetails.isAccountNonLocked());
+        claims.put("credentialsNonExpired", userDetails.isCredentialsNonExpired());
+        claims.put("enabled", userDetails.isEnabled());
+
+        // Build the JWT with all the claims
+        return Jwts.builder()
+                .setClaims(claims)
+                .claim("iat", System.currentTimeMillis() / 1000) // Issued at in seconds
+                .claim("exp", (System.currentTimeMillis() + expiration) / 1000) // Expiration in seconds
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     /**
      * Retrieves the signing key used for HMAC-SHA signature generation by decoding the secret key from
@@ -120,8 +148,8 @@ public class JWTServiceImpl implements JWTService {
 
 
     public String generateRefreshToken(
-            UserDetails userDetails
+            User user
     ) {
-        return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+        return buildToken(new HashMap<>(), mapToCustomUserDetails(user), refreshExpiration);
     }
 }

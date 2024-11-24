@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import thesis.backend.jwt.exception.AuthenticationExceptions.GeneralAuthenticationException;
 import thesis.backend.jwt.exception.AuthenticationExceptions.IncorrectEmailPasswordException;
 import thesis.backend.jwt.exception.TokenException.TokenRefreshException;
@@ -39,6 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
         var user = User.builder()
                 .firstname(request.getFirstname())

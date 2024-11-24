@@ -1,6 +1,7 @@
 package thesis.backend.jwt.service;
 
 import org.springframework.security.core.userdetails.UserDetails;
+import thesis.backend.jwt.model.MySQL.User;
 
 import java.util.Date;
 
@@ -12,6 +13,6 @@ public interface JWTService {
     public boolean isTokenExpired(String token);
     public Date extractExpiration(String token);
 
-    public String generateToken(UserDetails userDetails);
-    public String generateRefreshToken(UserDetails userDetails);
+    public String generateToken(User user);
+    public String generateRefreshToken(User user);
 }
