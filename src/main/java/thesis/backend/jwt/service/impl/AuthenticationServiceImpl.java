@@ -1,11 +1,8 @@
 package thesis.backend.jwt.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -14,20 +11,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import thesis.backend.jwt.exception.AuthenticationExceptions.GeneralAuthenticationException;
+import thesis.backend.jwt.exception.AuthenticationExceptions.IncorrectEmailException;
 import thesis.backend.jwt.exception.AuthenticationExceptions.IncorrectEmailPasswordException;
 import thesis.backend.jwt.exception.TokenException.TokenRefreshException;
 import thesis.backend.jwt.model.MySQL.Token;
 import thesis.backend.jwt.enums.TokenType;
 import thesis.backend.jwt.model.MySQL.User;
 import thesis.backend.jwt.model.Request.AuthenticateRequest;
+import thesis.backend.jwt.model.Request.ChangeUserRequest;
 import thesis.backend.jwt.model.Request.RegisterRequest;
 import thesis.backend.jwt.model.Response.AuthenticationResponse;
 import thesis.backend.jwt.repository.TokenRepository;
 import thesis.backend.jwt.repository.UserRepository;
 import thesis.backend.jwt.service.AuthenticationService;
 import thesis.backend.jwt.service.JWTService;
+import thesis.backend.jwt.validator.EmailValidator;
 
-import java.io.IOException;
+import java.util.NoSuchElementException;
 
 
 @Service
@@ -39,6 +39,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
+    @Autowired
+    EmailValidator emailValidator;
 
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
@@ -136,6 +138,41 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
         throw new TokenRefreshException("Invalid refresh token");
+    }
+
+
+    public String refreshTokenById(Long Id) throws TokenRefreshException{
+        User user = userRepository.findById(Math.toIntExact(Id))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + Id));
+
+        String accessToken = jwtService.generateToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, accessToken);
+
+        return accessToken;
+
+    }
+
+
+    @Override
+    public User retrieveUserByEmail(String email) {
+        //Validate its fields against rules
+        if(!emailValidator.validate(email))
+            throw new IncorrectEmailException(emailValidator.describe());
+
+        return userRepository.findByEmail(email).orElseThrow(NoSuchElementException::new);
+    }
+
+    @Override
+    public User changeUserByEmail(ChangeUserRequest changeUserRequest) {
+        //Validate its fields against rules
+        if(!emailValidator.validate(changeUserRequest.getNewEmail()))
+            throw new IncorrectEmailException(emailValidator.describe());
+
+        User u = userRepository.findByEmail(changeUserRequest.getOldEmail()).orElseThrow(NoSuchElementException::new);
+        u.setEmail(changeUserRequest.getNewEmail());
+        u.setPassword(passwordEncoder.encode(changeUserRequest.getPassword()));
+        return userRepository.save(u);
     }
 }
 

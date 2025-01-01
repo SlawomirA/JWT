@@ -44,5 +44,19 @@ public class JWTController {
                 authenticationService.refreshToken(authHeader)));
     }
 
+    @GetMapping(value = "/refresh-token-by-id", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Refreshes token of user",
+            description = "Refreshes token of user by user id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully refreshed"),
+    })
+    public ResponseEntity<Response<String>> refreshTokenOfUserById(@RequestParam Long id) throws IOException {
+        return ResponseEntity.ok(new Response<>(
+                Consts.C200,
+                200,
+                "",
+                authenticationService.refreshTokenById(id)));
+    }
+
 
 }
